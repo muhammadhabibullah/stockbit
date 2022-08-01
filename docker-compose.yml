@@ -36,3 +36,22 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     profiles:
       - dependency
+
+  akhq:
+    image: tchiotludo/akhq
+    container_name: akhq
+    networks:
+      - stockbit
+    ports:
+      - "8080:8080"
+    depends_on:
+      - broker
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            kafka:
+              properties:
+                bootstrap.servers: "broker:29092"
+    profiles:
+      - tools
