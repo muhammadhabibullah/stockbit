@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+	"log"
 
 	"github.com/lovoo/goka"
 	"github.com/lovoo/goka/codec"
@@ -40,5 +41,8 @@ func NewProcessorHandler(
 }
 
 func (h *processorHandler) Run(ctx context.Context) {
-	_ = h.processor.Run(ctx)
+	err := h.processor.Run(ctx)
+	if err != nil {
+		log.Printf("failed to run processor: %s", err)
+	}
 }
