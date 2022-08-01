@@ -40,11 +40,15 @@ func (p *aboveThresholdProcessor) Handle(ctx goka.Context, msg any) {
 		return
 	}
 
-	now := time.Now()
+	createdAt := ctx.Timestamp()
+	if createdAt.IsZero() {
+		createdAt = time.Now()
+	}
+
 	aboveThreshold.BalanceHistory = append([]domain.Balance{
 		{
 			Amount:    float64(deposit.Amount),
-			CreatedAt: &now,
+			CreatedAt: &createdAt,
 		},
 	}, aboveThreshold.BalanceHistory...)
 
