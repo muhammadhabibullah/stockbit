@@ -6,7 +6,6 @@ import (
 	"github.com/lovoo/goka"
 	"google.golang.org/protobuf/proto"
 	"stockbit/config"
-	"stockbit/domain"
 	"stockbit/domain/proto/pb"
 )
 
@@ -21,9 +20,9 @@ func NewBalanceProcessor(cfg config.Config) *balanceProcessor {
 }
 
 func (p *balanceProcessor) Handle(ctx goka.Context, msg any) {
-	balance := new(domain.Balance)
+	balance := new(pb.Balance)
 	if val := ctx.Value(); val != nil {
-		balance = val.(*domain.Balance)
+		balance = val.(*pb.Balance)
 	}
 
 	var (
@@ -37,7 +36,7 @@ func (p *balanceProcessor) Handle(ctx goka.Context, msg any) {
 		return
 	}
 
-	balance.Amount += float64(deposit.Amount)
+	balance.Amount += deposit.Amount
 
 	ctx.SetValue(balance)
 	if p.debug {

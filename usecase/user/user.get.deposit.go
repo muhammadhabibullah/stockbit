@@ -20,7 +20,7 @@ func (u *userUseCase) GetDeposit(_ context.Context, walletID int64) (*domain.Get
 		return &domain.GetDepositResponse{}, nil
 	}
 
-	balance, ok := balanceView.(*domain.Balance)
+	balance, ok := balanceView.(*pb.Balance)
 	if !ok {
 		return nil, fmt.Errorf("unsupported balance type: %T", balanceView)
 	}
@@ -55,7 +55,7 @@ func (u *userUseCase) GetDeposit(_ context.Context, walletID int64) (*domain.Get
 	}
 
 	return &domain.GetDepositResponse{
-		Amount:         balance.Amount,
+		Amount:         float64(balance.Amount),
 		AboveThreshold: totalBalance > totalBalanceLimit,
 	}, nil
 }

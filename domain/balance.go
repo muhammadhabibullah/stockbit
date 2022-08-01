@@ -1,33 +1,30 @@
 package domain
 
 import (
-	"encoding/json"
 	"fmt"
-	"time"
-)
 
-type Balance struct {
-	Amount    float64    `json:"amount"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-}
+	"google.golang.org/protobuf/proto"
+	"stockbit/domain/proto/pb"
+)
 
 type BalanceCodec struct{}
 
 func (bc *BalanceCodec) Encode(value interface{}) ([]byte, error) {
-	if _, isBalance := value.(*Balance); !isBalance {
+	table, isBalance := value.(*pb.Balance)
+	if !isBalance {
 		return nil, fmt.Errorf("codec requires value *Balance, got %T", value)
 	}
 
-	return json.Marshal(value)
+	return proto.Marshal(table)
 }
 
 func (bc *BalanceCodec) Decode(data []byte) (interface{}, error) {
 	var (
-		b   Balance
+		b   pb.Balance
 		err error
 	)
 
-	err = json.Unmarshal(data, &b)
+	err = proto.Unmarshal(data, &b)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling Balance: %v", err)
 	}
