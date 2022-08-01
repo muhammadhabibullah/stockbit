@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 	"stockbit/domain"
@@ -68,12 +69,57 @@ func (h *httpHandler) getDeposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	value, err := h.view.Get(fmt.Sprintf("%d", walletID))
+	key := fmt.Sprintf("%d", walletID)
+
+	balanceView, err := h.balanceView.Get(key)
 	if err != nil {
 		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
 		return
 	}
 
-	data, _ := json.Marshal(value)
+	balance, ok := balanceView.(*domain.Balance)
+	if !ok {
+		err = fmt.Errorf("unsupported balance type: %T", balanceView)
+		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
+		return
+	}
+
+	aboveThresholdView, err := h.aboveThresholdView.Get(key)
+	if err != nil {
+		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
+		return
+	}
+
+	aboveThreshold, ok := aboveThresholdView.(*domain.AboveThreshold)
+	if !ok {
+		err = fmt.Errorf("unsupported aboveThreshold type: %T", aboveThresholdView)
+		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
+		return
+	}
+
+	const totalBalanceLimit float64 = 10000
+
+	var (
+		totalBalance float64
+		timeLimit    = time.Now().Add(-2 * time.Minute)
+	)
+
+	for _, balanceHistory := range aboveThreshold.BalanceHistory {
+		if balanceHistory.CreatedAt.Before(timeLimit) {
+			break
+		}
+
+		totalBalance += balanceHistory.Amount
+		if totalBalance > totalBalanceLimit {
+			break
+		}
+	}
+
+	response := domain.GetDepositResponse{
+		Amount:         balance.Amount,
+		AboveThreshold: totalBalance > totalBalanceLimit,
+	}
+
+	data, _ := json.Marshal(response)
 	_, _ = w.Write(data)
 }

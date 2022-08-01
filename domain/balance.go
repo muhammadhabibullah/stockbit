@@ -3,10 +3,12 @@ package domain
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 type Balance struct {
-	Amount float64 `json:"amount"`
+	Amount    float64    `json:"amount"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
 }
 
 type BalanceCodec struct{}

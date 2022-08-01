@@ -15,13 +15,14 @@ import (
 )
 
 const (
-	topic        = "deposits"
-	balanceGroup = "balance"
+	topic               = "deposits"
+	balanceGroup        = "balance"
+	aboveThresholdGroup = "aboveThresholdGroup"
 )
 
 func main() {
-	command := flag.String("command", "", "service command")
-	processor := flag.String("processor", "", "processor command")
+	command := flag.String("command", "", "service command: http/processor")
+	processor := flag.String("processor", "", "processor command: balance/above_threshold")
 	flag.Parse()
 
 	tmc := goka.NewTopicManagerConfig()
@@ -48,22 +49,31 @@ func main() {
 	}
 	defer emitter.Finish()
 
-	view, err := goka.NewView(brokers,
-		goka.GroupTable(balanceGroup),
-		new(domain.BalanceCodec),
-	)
-	if err != nil {
-		panic(err)
-	}
-
 	if command == nil {
 		panic("missing command")
 	}
 
 	switch *command {
 	case "http":
-		// serve http
-		h := httpHandler.NewHTTPHandler(emitter, view)
+		balanceView, err := goka.NewView(
+			brokers,
+			goka.GroupTable(balanceGroup),
+			new(domain.BalanceCodec),
+		)
+		if err != nil {
+			panic(err)
+		}
+
+		aboveThresholdView, err := goka.NewView(
+			brokers,
+			goka.GroupTable(aboveThresholdGroup),
+			new(domain.AboveThresholdCodec),
+		)
+		if err != nil {
+			panic(err)
+		}
+
+		h := httpHandler.NewHTTPHandler(emitter, balanceView, aboveThresholdView)
 
 		mux := http.NewServeMux()
 		mux.HandleFunc("/deposit", h.Deposit)
@@ -73,9 +83,17 @@ func main() {
 		server.Handler = mux
 
 		go func() {
-			errView := view.Run(context.Background())
+			errView := balanceView.Run(context.Background())
 			if errView != nil {
-				log.Printf("error running view: %s", errView)
+				log.Printf("error running balanceView: %s", errView)
+				return
+			}
+		}()
+
+		go func() {
+			errView := aboveThresholdView.Run(context.Background())
+			if errView != nil {
+				log.Printf("error running balanceView: %s", errView)
 				return
 			}
 		}()
@@ -101,6 +119,16 @@ func main() {
 				brokers,
 				new(domain.BalanceCodec),
 				balanceProcessor.Handle,
+			)
+		case "above_threshold":
+			aboveThresholdProcessor := processorHandler.NewAboveThresholdProcessor()
+			ph = processorHandler.NewProcessorHandler(
+				topic,
+				aboveThresholdGroup,
+				tmc,
+				brokers,
+				new(domain.AboveThresholdCodec),
+				aboveThresholdProcessor.Handle,
 			)
 		default:
 			panic(fmt.Errorf("unsupported processor command: %s", *processor))
