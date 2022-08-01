@@ -51,7 +51,7 @@ func (h *httpHandler) postDeposit(w http.ResponseWriter, r *http.Request) {
 	key := fmt.Sprint(req.WalletID)
 	value := string(msg)
 
-	err = h.emitter.EmitSync(key, value)
+	err = h.emitters[domain.DepositsTopic].EmitSync(key, value)
 	if err != nil {
 		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
 		return
@@ -71,9 +71,15 @@ func (h *httpHandler) getDeposit(w http.ResponseWriter, r *http.Request) {
 
 	key := fmt.Sprintf("%d", walletID)
 
-	balanceView, err := h.balanceView.Get(key)
+	balanceView, err := h.viewers[domain.BalanceGroup].Get(key)
 	if err != nil {
 		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
+		return
+	}
+	if balanceView == nil {
+		response := domain.GetDepositResponse{}
+		data, _ := json.Marshal(response)
+		_, _ = w.Write(data)
 		return
 	}
 
@@ -84,7 +90,7 @@ func (h *httpHandler) getDeposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	aboveThresholdView, err := h.aboveThresholdView.Get(key)
+	aboveThresholdView, err := h.viewers[domain.AboveThresholdGroup].Get(key)
 	if err != nil {
 		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
 		return

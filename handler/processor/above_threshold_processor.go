@@ -6,14 +6,19 @@ import (
 
 	"github.com/lovoo/goka"
 	"google.golang.org/protobuf/proto"
+	"stockbit/config"
 	"stockbit/domain"
 	"stockbit/domain/proto/pb"
 )
 
-type aboveThresholdProcessor struct{}
+type aboveThresholdProcessor struct {
+	debug bool
+}
 
-func NewAboveThresholdProcessor() *aboveThresholdProcessor {
-	return &aboveThresholdProcessor{}
+func NewAboveThresholdProcessor(cfg config.Config) *aboveThresholdProcessor {
+	return &aboveThresholdProcessor{
+		debug: cfg.Server.Debug,
+	}
 }
 
 func (p *aboveThresholdProcessor) Handle(ctx goka.Context, msg any) {
@@ -44,5 +49,7 @@ func (p *aboveThresholdProcessor) Handle(ctx goka.Context, msg any) {
 	}, aboveThreshold.BalanceHistory...)
 
 	ctx.SetValue(aboveThreshold)
-	log.Printf("topic %s; %+v", ctx.Key(), aboveThreshold)
+	if p.debug {
+		log.Printf("topic %s; %+v", ctx.Key(), aboveThreshold)
+	}
 }

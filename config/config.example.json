@@ -1,0 +1,22 @@
+{
+  "server": {
+    "address": "localhost",
+    "port": "8000",
+    "debug": true
+  },
+  "goka": {
+    "brokers": [
+      "localhost:9092"
+    ],
+    "topicManagerConfig": {
+      "tableReplication": 1,
+      "streamReplication": 1
+    },
+    "topics": [
+      {
+        "name": "deposits",
+        "partition": 3
+      }
+    ]
+  }
+}

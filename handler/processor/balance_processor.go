@@ -5,14 +5,19 @@ import (
 
 	"github.com/lovoo/goka"
 	"google.golang.org/protobuf/proto"
+	"stockbit/config"
 	"stockbit/domain"
 	"stockbit/domain/proto/pb"
 )
 
-type balanceProcessor struct{}
+type balanceProcessor struct {
+	debug bool
+}
 
-func NewBalanceProcessor() *balanceProcessor {
-	return &balanceProcessor{}
+func NewBalanceProcessor(cfg config.Config) *balanceProcessor {
+	return &balanceProcessor{
+		debug: cfg.Server.Debug,
+	}
 }
 
 func (p *balanceProcessor) Handle(ctx goka.Context, msg any) {
@@ -35,5 +40,7 @@ func (p *balanceProcessor) Handle(ctx goka.Context, msg any) {
 	balance.Amount += float64(deposit.Amount)
 
 	ctx.SetValue(balance)
-	log.Printf("topic %s; %+v", ctx.Key(), balance)
+	if p.debug {
+		log.Printf("topic %s; %+v", ctx.Key(), balance)
+	}
 }

@@ -5,19 +5,16 @@ import (
 )
 
 type httpHandler struct {
-	emitter            *goka.Emitter
-	balanceView        *goka.View
-	aboveThresholdView *goka.View
+	emitters map[string]*goka.Emitter
+	viewers  map[string]*goka.View
 }
 
 func NewHTTPHandler(
-	emitter *goka.Emitter,
-	balanceView *goka.View,
-	aboveThresholdView *goka.View,
+	emitters map[string]*goka.Emitter,
+	viewers map[string]*goka.View,
 ) *httpHandler {
 	return &httpHandler{
-		emitter:            emitter,
-		balanceView:        balanceView,
-		aboveThresholdView: aboveThresholdView,
+		emitters: emitters,
+		viewers:  viewers,
 	}
 }
