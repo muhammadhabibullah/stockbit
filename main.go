@@ -16,6 +16,7 @@ import (
 	"stockbit/domain"
 	httpHandler "stockbit/handler/http"
 	processorHandler "stockbit/handler/processor"
+	"stockbit/usecase/user"
 )
 
 func main() {
@@ -102,7 +103,9 @@ func main() {
 			panic(err)
 		}
 
-		h := httpHandler.NewHTTPHandler(emitters, viewers, cfg)
+		userUseCase := user.NewUserUseCase(emitters, viewers, cfg)
+
+		h := httpHandler.NewHTTPHandler(userUseCase)
 
 		mux := http.NewServeMux()
 		mux.HandleFunc("/deposit", h.Deposit)

@@ -1,24 +1,17 @@
 package http
 
 import (
-	"github.com/lovoo/goka"
-	"stockbit/config"
+	"stockbit/domain"
 )
 
 type httpHandler struct {
-	emitters   map[string]*goka.Emitter
-	viewers    map[string]*goka.View
-	depositCfg config.DepositConfig
+	userUseCase domain.UserUseCase
 }
 
 func NewHTTPHandler(
-	emitters map[string]*goka.Emitter,
-	viewers map[string]*goka.View,
-	cfg config.Config,
+	userUseCase domain.UserUseCase,
 ) *httpHandler {
 	return &httpHandler{
-		emitters:   emitters,
-		viewers:    viewers,
-		depositCfg: cfg.Deposit,
+		userUseCase: userUseCase,
 	}
 }

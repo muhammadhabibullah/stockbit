@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
-	"google.golang.org/protobuf/proto"
 	"stockbit/domain"
-	"stockbit/domain/proto/pb"
 )
 
 func (h *httpHandler) Deposit(w http.ResponseWriter, r *http.Request) {
@@ -38,26 +35,13 @@ func (h *httpHandler) postDeposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	depositEmit := pb.Deposit{
-		WalletId: req.WalletID,
-		Amount:   float32(req.Amount),
-	}
-	msg, err := proto.Marshal(&depositEmit)
+	err = h.userUseCase.Deposit(r.Context(), req)
 	if err != nil {
 		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
 		return
 	}
 
-	key := fmt.Sprint(req.WalletID)
-	value := string(msg)
-
-	err = h.emitters[domain.DepositsTopic].EmitSync(key, value)
-	if err != nil {
-		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
-		return
-	}
-
-	response, _ := json.MarshalIndent(&depositEmit, "", "    ")
+	response, _ := json.MarshalIndent(&req, "", "    ")
 	_, _ = fmt.Fprintf(w, string(response))
 }
 
@@ -69,62 +53,10 @@ func (h *httpHandler) getDeposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := fmt.Sprintf("%d", walletID)
-
-	balanceView, err := h.viewers[domain.BalanceGroup].Get(key)
+	response, err := h.userUseCase.GetDeposit(r.Context(), walletID)
 	if err != nil {
 		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
 		return
-	}
-	if balanceView == nil {
-		response := domain.GetDepositResponse{}
-		data, _ := json.Marshal(response)
-		_, _ = w.Write(data)
-		return
-	}
-
-	balance, ok := balanceView.(*domain.Balance)
-	if !ok {
-		err = fmt.Errorf("unsupported balance type: %T", balanceView)
-		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
-		return
-	}
-
-	aboveThresholdView, err := h.viewers[domain.AboveThresholdGroup].Get(key)
-	if err != nil {
-		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
-		return
-	}
-
-	aboveThreshold, ok := aboveThresholdView.(*domain.AboveThreshold)
-	if !ok {
-		err = fmt.Errorf("unsupported aboveThreshold type: %T", aboveThresholdView)
-		http.Error(w, domain.NewHTTPError(err), http.StatusInternalServerError)
-		return
-	}
-
-	var (
-		totalBalance         float64
-		thresholdCfg         = h.depositCfg.Threshold
-		totalBalanceLimit    = thresholdCfg.Amount
-		timeLimitDuration, _ = time.ParseDuration(thresholdCfg.Time)
-		timeLimit            = time.Now().Add(-timeLimitDuration)
-	)
-
-	for _, balanceHistory := range aboveThreshold.BalanceHistory {
-		if balanceHistory.CreatedAt.Before(timeLimit) {
-			break
-		}
-
-		totalBalance += balanceHistory.Amount
-		if totalBalance > totalBalanceLimit {
-			break
-		}
-	}
-
-	response := domain.GetDepositResponse{
-		Amount:         balance.Amount,
-		AboveThreshold: totalBalance > totalBalanceLimit,
 	}
 
 	data, _ := json.Marshal(response)
