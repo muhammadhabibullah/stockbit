@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"stockbit/domain"
+	"stockbit/domain/proto/pb"
 )
 
 func (u *userUseCase) GetDeposit(_ context.Context, walletID int64) (*domain.GetDepositResponse, error) {
@@ -29,7 +30,7 @@ func (u *userUseCase) GetDeposit(_ context.Context, walletID int64) (*domain.Get
 		return nil, err
 	}
 
-	aboveThreshold, ok := aboveThresholdView.(*domain.AboveThreshold)
+	aboveThreshold, ok := aboveThresholdView.(*pb.AboveThresholdTable)
 	if !ok {
 		return nil, fmt.Errorf("unsupported aboveThreshold type: %T", aboveThresholdView)
 	}
@@ -43,11 +44,11 @@ func (u *userUseCase) GetDeposit(_ context.Context, walletID int64) (*domain.Get
 	)
 
 	for _, balanceHistory := range aboveThreshold.BalanceHistory {
-		if balanceHistory.CreatedAt.Before(timeLimit) {
+		if balanceHistory.CreatedAt.AsTime().Before(timeLimit) {
 			break
 		}
 
-		totalBalance += balanceHistory.Amount
+		totalBalance += float64(balanceHistory.Amount)
 		if totalBalance > totalBalanceLimit {
 			break
 		}

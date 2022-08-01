@@ -6,8 +6,8 @@ import (
 
 	"github.com/lovoo/goka"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"stockbit/config"
-	"stockbit/domain"
 	"stockbit/domain/proto/pb"
 )
 
@@ -22,11 +22,11 @@ func NewAboveThresholdProcessor(cfg config.Config) *aboveThresholdProcessor {
 }
 
 func (p *aboveThresholdProcessor) Handle(ctx goka.Context, msg any) {
-	aboveThreshold := &domain.AboveThreshold{
-		BalanceHistory: []domain.Balance{},
+	aboveThreshold := &pb.AboveThresholdTable{
+		BalanceHistory: []*pb.Balance{},
 	}
 	if val := ctx.Value(); val != nil {
-		aboveThreshold = val.(*domain.AboveThreshold)
+		aboveThreshold = val.(*pb.AboveThresholdTable)
 	}
 
 	var (
@@ -45,10 +45,10 @@ func (p *aboveThresholdProcessor) Handle(ctx goka.Context, msg any) {
 		createdAt = time.Now()
 	}
 
-	aboveThreshold.BalanceHistory = append([]domain.Balance{
+	aboveThreshold.BalanceHistory = append([]*pb.Balance{
 		{
-			Amount:    float64(deposit.Amount),
-			CreatedAt: &createdAt,
+			Amount:    deposit.Amount,
+			CreatedAt: timestamppb.New(createdAt),
 		},
 	}, aboveThreshold.BalanceHistory...)
 

@@ -1,31 +1,30 @@
 package domain
 
 import (
-	"encoding/json"
 	"fmt"
-)
 
-type AboveThreshold struct {
-	BalanceHistory []Balance
-}
+	"google.golang.org/protobuf/proto"
+	"stockbit/domain/proto/pb"
+)
 
 type AboveThresholdCodec struct{}
 
 func (atc *AboveThresholdCodec) Encode(value interface{}) ([]byte, error) {
-	if _, isAboveThreshold := value.(*AboveThreshold); !isAboveThreshold {
+	at, isAboveThreshold := value.(*pb.AboveThresholdTable)
+	if !isAboveThreshold {
 		return nil, fmt.Errorf("codec requires value *AboveThreshold, got %T", value)
 	}
 
-	return json.Marshal(value)
+	return proto.Marshal(at)
 }
 
 func (atc *AboveThresholdCodec) Decode(data []byte) (interface{}, error) {
 	var (
-		at  AboveThreshold
+		at  pb.AboveThresholdTable
 		err error
 	)
 
-	err = json.Unmarshal(data, &at)
+	err = proto.Unmarshal(data, &at)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling AboveThreshold: %v", err)
 	}

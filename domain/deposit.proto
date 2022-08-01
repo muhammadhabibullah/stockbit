@@ -1,9 +1,20 @@
 syntax = "proto3";
 package pb;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "./pb";
 
 message Deposit {
   int64 wallet_id = 1;
   float amount = 2;
+}
+
+message Balance {
+  float amount = 1;
+  google.protobuf.Timestamp created_at = 2;
+}
+
+message AboveThresholdTable {
+  repeated Balance balance_history = 1;
 }
