@@ -1,11 +1,11 @@
 package domain
 
 type DepositRequest struct {
-	WalletID int64   `json:"wallet_id"`
-	Amount   float64 `json:"amount"`
+	WalletID int64   `json:"wallet_id" example:"1"`
+	Amount   float64 `json:"amount" example:"1000"`
 }
 
 type GetDepositResponse struct {
-	Amount         float64 `json:"amount"`
-	AboveThreshold bool    `json:"above_threshold"`
+	Amount         float64 `json:"amount" example:"3000"`
+	AboveThreshold bool    `json:"above_threshold" example:"false"`
 }

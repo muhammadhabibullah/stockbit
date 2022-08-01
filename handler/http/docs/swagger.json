@@ -1,0 +1,136 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Stockbit Deposit API.",
+        "title": "Stockbit API",
+        "contact": {},
+        "version": "0.1"
+    },
+    "host": "localhost:8000",
+    "paths": {
+        "/deposit": {
+            "get": {
+                "description": "Get balance amount and above threshold flag",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Deposit"
+                ],
+                "summary": "Get deposit",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Wallet ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetDepositResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HTTPError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Deposit wallet",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Deposit"
+                ],
+                "summary": "Deposit wallet",
+                "parameters": [
+                    {
+                        "description": "Create brand request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.DepositRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.DepositRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.HTTPError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.DepositRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "example": 1000
+                },
+                "wallet_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "domain.GetDepositResponse": {
+            "type": "object",
+            "properties": {
+                "above_threshold": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "amount": {
+                    "type": "number",
+                    "example": 3000
+                }
+            }
+        },
+        "domain.HTTPError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

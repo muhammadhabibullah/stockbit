@@ -12,12 +12,18 @@ import (
 
 	"github.com/lovoo/goka"
 	"github.com/lovoo/goka/codec"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"stockbit/config"
 	"stockbit/domain"
 	httpHandler "stockbit/handler/http"
 	processorHandler "stockbit/handler/processor"
 	"stockbit/usecase/user"
 )
+
+// @title Stockbit API
+// @version 0.1
+// @description Stockbit Deposit API.
+// @host localhost:8000
 
 func main() {
 	command := flag.String("command", "", "service command: http/processor")
@@ -107,11 +113,18 @@ func main() {
 
 		h := httpHandler.NewHTTPHandler(userUseCase)
 
+		serverAddress := fmt.Sprintf("%s:%s", cfg.Server.Address, cfg.Server.Port)
+
 		mux := http.NewServeMux()
+		mux.Handle("/", http.FileServer(http.Dir("handler/http/docs")))
+		mux.Handle("/swagger/", httpSwagger.Handler(
+			httpSwagger.URL(fmt.Sprintf("http://%s/swagger.json", serverAddress)),
+		))
+
 		mux.HandleFunc("/deposit", h.Deposit)
 
 		server := new(http.Server)
-		server.Addr = fmt.Sprintf("%s:%s", cfg.Server.Address, cfg.Server.Port)
+		server.Addr = serverAddress
 		server.Handler = mux
 
 		for viewName, view := range viewers {
