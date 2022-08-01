@@ -17,4 +17,12 @@ type Config struct {
 			Partition int    `json:"partition"`
 		} `json:"topics"`
 	} `json:"goka"`
+	Deposit DepositConfig `json:"deposit"`
+}
+
+type DepositConfig struct {
+	Threshold struct {
+		Amount float64 `json:"amount"`
+		Time   string  `json:"time"`
+	} `json:"threshold"`
 }

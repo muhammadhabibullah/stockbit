@@ -18,5 +18,11 @@
         "partition": 3
       }
     ]
+  },
+  "deposit": {
+    "threshold": {
+      "amount": 10000,
+      "time": "2m"
+    }
   }
 }

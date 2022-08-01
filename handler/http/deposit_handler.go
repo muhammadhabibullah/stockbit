@@ -103,11 +103,12 @@ func (h *httpHandler) getDeposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const totalBalanceLimit float64 = 10000
-
 	var (
-		totalBalance float64
-		timeLimit    = time.Now().Add(-2 * time.Minute)
+		totalBalance         float64
+		thresholdCfg         = h.depositCfg.Threshold
+		totalBalanceLimit    = thresholdCfg.Amount
+		timeLimitDuration, _ = time.ParseDuration(thresholdCfg.Time)
+		timeLimit            = time.Now().Add(-timeLimitDuration)
 	)
 
 	for _, balanceHistory := range aboveThreshold.BalanceHistory {

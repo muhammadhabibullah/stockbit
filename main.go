@@ -102,7 +102,7 @@ func main() {
 			panic(err)
 		}
 
-		h := httpHandler.NewHTTPHandler(emitters, viewers)
+		h := httpHandler.NewHTTPHandler(emitters, viewers, cfg)
 
 		mux := http.NewServeMux()
 		mux.HandleFunc("/deposit", h.Deposit)
